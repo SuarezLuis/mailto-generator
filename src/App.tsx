@@ -75,6 +75,7 @@ function App() {
       height="100vh"
       padding="4"
       justifyContent="center"
+      overflow="scroll"
     >
       <Box maxW="800px">
         <Flex justifyContent="space-between">
@@ -190,10 +191,20 @@ function App() {
             </Flex>
           )}
         </Box>
-        <Box marginTop="5" marginBottom="20">
+        <Box marginTop="5" paddingBottom="20">
           <Text textAlign="justify">
-            This tool was created by , it is provided free of charge and without
-            warranty. If you find it useful, please consider{" "}
+            This tool was created by{" "}
+            <Button
+              variant="link"
+              onClick={() => {
+                // open the link in a new tab
+                window.open("https://suarezluis.com");
+              }}
+            >
+              Luis Suarez
+            </Button>
+            , it is provided free of charge and without warranty. If you find it
+            useful, please consider{" "}
             <Button
               variant="link"
               onClick={() => {
