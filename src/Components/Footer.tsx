@@ -6,7 +6,7 @@ type Props = {};
 
 const Footer = (props: Props) => {
   return (
-    <Box marginTop="5" paddingBottom="20">
+    <Box marginTop="5" paddingBottom="40">
       <Text textAlign="justify">
         This tool was created by{" "}
         <Button
