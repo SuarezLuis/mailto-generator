@@ -1,64 +1,128 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "./App.css";
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Input,
-  InputGroup,
-  InputLeftAddon,
-  Textarea,
-  useColorMode,
-  Text,
-  Code,
-  FormLabel,
-  Tag,
-  useClipboard,
-} from "@chakra-ui/react";
+import { Box, Flex, Text, useClipboard } from "@chakra-ui/react";
+import Subject from "./Components/Subject";
+import Link from "./Components/Link";
+import Body from "./Components/Body";
+import Bcc from "./Components/Bcc";
+import Cc from "./Components/Cc";
+import To from "./Components/To";
+import Header from "./Components/Header";
+import Actions from "./Components/Actions";
+import Html from "./Components/Html";
+import Footer from "./Components/Footer";
+
+export type InvalidEmails = {
+  to: string[];
+  cc: string[];
+  bcc: string[];
+};
 
 function App() {
-  const { colorMode, toggleColorMode } = useColorMode();
+  // Copy link to clipboard
   const {
     onCopy: onLinkCopy,
     value: linkValue,
     setValue: setLinkValue,
     hasCopied: linkHasCopied,
   } = useClipboard("");
+
+  // Copy html to clipboard
   const {
     onCopy: onHtmlCopy,
-    value: HtmlValue,
+    value: htmlValue,
     setValue: setHtmlValue,
     hasCopied: htmlHasCopied,
   } = useClipboard("");
+  // Form state
   const [to, setTo] = useState("");
+  const [toErrorMessage, setToErrorMessage] = useState("");
   const [cc, setCc] = useState("");
   const [bcc, setBcc] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
 
+  // Email validation object
+  const [invalidEmails, setInvalidEmails] = useState<InvalidEmails>({
+    to: [],
+    cc: [],
+    bcc: [],
+  });
+
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Validate emails
+  const validateEmails = (): boolean => {
+    const toArray = to.trim().split(",");
+    const ccArray = !!cc.trim() ? cc.split(",") : [];
+    const bccArray = !!bcc.trim() ? bcc.split(",") : [];
+
+    const invalidToEmails = toArray.filter(
+      (email) => !email.trim().match(emailRegex)
+    );
+    const invalidCcEmails = ccArray.filter(
+      (email) => !email.trim().match(emailRegex)
+    );
+    const invalidBccEmails = bccArray.filter(
+      (email) => !email.trim().match(emailRegex)
+    );
+
+    setInvalidEmails({
+      to: invalidToEmails,
+      cc: invalidCcEmails,
+      bcc: invalidBccEmails,
+    });
+
+    const isValid =
+      invalidToEmails.length === 0 &&
+      invalidCcEmails.length === 0 &&
+      invalidBccEmails.length === 0;
+
+    if (!isValid) {
+      clearResults();
+      return false;
+    }
+    return true;
+  };
+
+  // Validate form
+  const validateForm = (): boolean => {
+    if (!to) {
+      setToErrorMessage("Please enter at least one recipient");
+      clearResults();
+      return false;
+    }
+    setToErrorMessage("");
+    return true;
+  };
+
+  // Clear form
   const clearForm = (): void => {
     setTo("");
     setCc("");
     setBcc("");
     setSubject("");
     setBody("");
-    setLinkValue("");
-    setHtmlValue("");
+    clearResults();
   };
 
+  // Generate link
   const generateLink = (): void => {
+    if (!validateForm() || !validateEmails()) {
+      return;
+    }
     let link = `mailto:${to.replaceAll(" ", "")}?`;
-    if (cc) {
+    if (cc.trim()) {
       link += `cc=${cc.replaceAll(" ", "")}&`;
     }
-    if (bcc) {
+    if (bcc.trim()) {
       link += `bcc=${bcc.replaceAll(" ", "")}&`;
     }
-    if (subject) {
+    if (subject.trim()) {
       link += `subject=${encodeURI(subject)}&`;
     }
-    if (body) {
+    if (body.trim()) {
       link += `body=${encodeURI(body)}`;
     }
     // remove the last character if it's an ampersand or question mark
@@ -68,6 +132,20 @@ function App() {
     setLinkValue(link);
     setHtmlValue(`<a href="${link}">Send me an email</a>`);
   };
+
+  // Clear results
+  const clearResults = useCallback((): void => {
+    setLinkValue("");
+    setHtmlValue("");
+  }, [setHtmlValue, setLinkValue]);
+
+  // Effects
+
+  // Clear results when form values change
+  useEffect(() => {
+    clearResults();
+  }, [to, cc, bcc, subject, body, clearResults]);
+
   return (
     <Flex
       className="App"
@@ -78,26 +156,8 @@ function App() {
       overflow="scroll"
     >
       <Box maxW="800px">
-        <Flex justifyContent="space-between">
-          <Button
-            colorScheme="yellow"
-            onClick={() => {
-              // open the link in a new tab
-              window.open("https://www.buymeacoffee.com/suarezluis");
-            }}
-          >
-            Buy me coffee ☕
-          </Button>
+        <Header />
 
-          <Button onClick={toggleColorMode}>
-            Toggle {colorMode === "light" ? "Dark" : "Light"}
-          </Button>
-        </Flex>
-        <Flex justifyContent="center">
-          <Heading as="h1" size="xl" marginY="4">
-            Mailto Link Generator
-          </Heading>
-        </Flex>
         <Flex flexDirection="column" paddingY="5">
           <Text as="p" marginY="4">
             This is a simple tool to generate a mailto link for you to use in
@@ -109,124 +169,41 @@ function App() {
           <Text as="p" marginY="4">
             Fill out the form below and click generate to create a mailto link.
           </Text>
-          <InputGroup mb="4">
-            <InputLeftAddon width="60px" children="to:" />
-            <Input
-              type="email"
-              placeholder="comma separated email addresses (required)"
-              value={to}
-              onChange={(e) => setTo(e.currentTarget.value)}
-            />
-          </InputGroup>
-          <InputGroup mb="4">
-            <InputLeftAddon width="60px" children="cc:" />
-            <Input
-              type="text"
-              placeholder="comma separated email addresses (optional)"
-              value={cc}
-              onChange={(e) => setCc(e.currentTarget.value)}
-            />
-          </InputGroup>
-          <InputGroup mb="4">
-            <InputLeftAddon width="60px" children="bcc:" />
-            <Input
-              type="text"
-              placeholder="comma separated email addresses (optional)"
-              value={bcc}
-              onChange={(e) => setBcc(e.currentTarget.value)}
-            />
-          </InputGroup>
-          <FormLabel>Subject:</FormLabel>
-          <Input
-            placeholder="subject line (optional)"
-            value={subject}
-            onChange={(e) => setSubject(e.currentTarget.value)}
-          />
-          <FormLabel mt="4">Body:</FormLabel>
-          <Textarea
-            placeholder="email body (optional)"
-            value={body}
-            onChange={(e) => setBody(e.currentTarget.value)}
-          />
-        </Flex>
-        <Box paddingX="10">
-          <Flex justifyContent="space-evenly">
-            <Button onClick={clearForm}>Clear</Button>
-            <Button onClick={generateLink}>Generate</Button>
-          </Flex>
 
-          {linkValue && (
-            <Flex mb="4" alignItems="center" flexDirection="column">
-              <Box>
-                <Button
-                  onClick={() => {
-                    if (linkValue) {
-                      window.location = linkValue as unknown as Location;
-                    }
-                  }}
-                >
-                  Test your link
-                </Button>
-              </Box>
-              <Flex flexDirection="column" maxWidth="75%">
-                <Flex justifyContent="space-between" paddingY="4">
-                  <Tag>Link</Tag>
-                  <Button size="xs" onClick={onLinkCopy}>
-                    {linkHasCopied ? "Copied!" : "Copy"}
-                  </Button>
-                </Flex>
-                <Code padding="4" variant="subtle" colorScheme="green">
-                  {linkValue}
-                </Code>
-                <Flex justifyContent="space-between" paddingY="4">
-                  <Tag>HTML</Tag>
-                  <Button size="xs" onClick={onHtmlCopy}>
-                    {htmlHasCopied ? "Copied!" : "Copy"}
-                  </Button>
-                </Flex>
-                <Code padding="4" variant="subtle" colorScheme="blue">
-                  {HtmlValue}
-                </Code>
-              </Flex>
-            </Flex>
-          )}
-        </Box>
-        <Box marginTop="5" paddingBottom="20">
-          <Text textAlign="justify">
-            This tool was created by{" "}
-            <Button
-              variant="link"
-              onClick={() => {
-                // open the link in a new tab
-                window.open("https://suarezluis.com");
-              }}
-            >
-              Luis Suarez
-            </Button>
-            , it is provided free of charge and without warranty. If you find it
-            useful, please consider{" "}
-            <Button
-              variant="link"
-              onClick={() => {
-                // open the link in a new tab
-                window.open("https://www.buymeacoffee.com/suarezluis");
-              }}
-            >
-              buying me a coffee
-            </Button>
-            . If you have any questions, comments, or suggestions, please{" "}
-            <Button
-              variant="link"
-              onClick={() => {
-                // open the link in a new tab
-                window.open("https://x.com/suarezluis");
-              }}
-            >
-              reach out to me on X (formerly Twitter)
-            </Button>
-            .
-          </Text>
-        </Box>
+          <To
+            to={to}
+            setTo={setTo}
+            toErrorMessage={toErrorMessage}
+            invalidEmails={invalidEmails}
+          />
+
+          <Cc cc={cc} setCc={setCc} invalidEmails={invalidEmails} />
+
+          <Bcc bcc={bcc} setBcc={setBcc} invalidEmails={invalidEmails} />
+
+          <Subject subject={subject} setSubject={setSubject} />
+
+          <Body body={body} setBody={setBody} />
+        </Flex>
+        <Actions clearForm={clearForm} generateLink={generateLink} />
+        <Link
+          linkValue={linkValue}
+          linkHasCopied={linkHasCopied}
+          onLinkCopy={onLinkCopy}
+        />
+        <Html
+          htmlValue={htmlValue}
+          linkValue={linkValue}
+          htmlHasCopied={htmlHasCopied}
+          onHtmlCopy={onHtmlCopy}
+        />
+
+        {linkValue && (
+          <Flex mb="4" alignItems="center" flexDirection="column">
+            <Flex flexDirection="column" maxWidth="75%"></Flex>
+          </Flex>
+        )}
+        <Footer />
       </Box>
     </Flex>
   );
