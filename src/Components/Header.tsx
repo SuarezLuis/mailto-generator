@@ -1,10 +1,15 @@
-import { Button, Flex, Heading, useColorMode } from "@chakra-ui/react";
+import {
+  Button,
+  Flex,
+  Heading,
+  // useColorMode
+} from "@chakra-ui/react";
 import React from "react";
 
 type Props = {};
 
 const Header = (props: Props) => {
-  const { colorMode, toggleColorMode } = useColorMode();
+  // const { colorMode, toggleColorMode } = useColorMode();
   return (
     <>
       <Flex justifyContent="space-between">
@@ -18,9 +23,9 @@ const Header = (props: Props) => {
           Buy me coffee ☕
         </Button>
 
-        <Button onClick={toggleColorMode}>
+        {/* <Button onClick={toggleColorMode}>
           Toggle {colorMode === "light" ? "Dark" : "Light"}
-        </Button>
+        </Button> */}
       </Flex>
       <Flex justifyContent="center">
         <Heading as="h1" size="xl" marginY="4">
