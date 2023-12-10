@@ -27,6 +27,21 @@ const Header = (props: Props) => {
           Mailto Link Generator
         </Heading>
       </Flex>
+      <Flex mt="4" justifyContent={"space-between"}>
+        <iframe
+          src="https://ghbtns.com/github-btn.html?user=suarezluis&repo=mailto-generator&type=star&count=true&size=large"
+          width="170"
+          height="30"
+          title="GitHub"
+        ></iframe>
+
+        <iframe
+          src="https://ghbtns.com/github-btn.html?user=suarezluis&type=sponsor&size=large"
+          width="206"
+          height="30"
+          title="GitHub"
+        ></iframe>
+      </Flex>
     </>
   );
 };
