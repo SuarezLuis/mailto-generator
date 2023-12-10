@@ -1,3 +1,7 @@
+# Mailto Generator
+
+This application is live at [https://www.mailtogenerator.com](https://www.mailtogenerator.com)
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
